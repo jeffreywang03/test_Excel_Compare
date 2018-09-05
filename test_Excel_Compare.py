@@ -2,6 +2,7 @@ import datetime
 import queue
 import logging
 import signal
+import csv
 import os
 import time
 import threading
@@ -23,9 +24,6 @@ class QueueHandler(logging.Handler):
 
 	def emit(self, record):
 		self.log_queue.put(record)
-
-
-
 
 class ConsoleUi:
 	"""Poll messages from a logging queue and display them in a scrolled text widget"""
@@ -69,6 +67,7 @@ class ConsoleUi:
 				self.display(record)
 		self.frame.after(100, self.poll_log_queue)
 
+
 class FormUi:
 
 	def __init__(self, frame):
@@ -76,27 +75,39 @@ class FormUi:
 		self.frame = frame
 
 		ttk.Label(self.frame, text='File 1:').grid(column=0, row=0, sticky=W)
-		self.button = ttk.Button(self.frame, text='Browse', width=30, command=self.openFile).grid(column=0, row=1, sticky=(W))
-		logging.info("Button 1: %s" % filename)
+		self.button = ttk.Button(self.frame, text='Browse', width=30, command=self.openFile1).grid(column=0, row=1, sticky=(W))
 
 		ttk.Label(self.frame, text='File 2:').grid(column=0, row=3, sticky=W)
-		self.button = ttk.Button(self.frame, text='Browse', width=30, command=self.openFile).grid(column=0, row=4, sticky=(W)) 
+		self.button = ttk.Button(self.frame, text='Browse', width=30, command=self.openFile2).grid(column=0, row=4, sticky=(W)) 
 
 
 		self.button = ttk.Button(self.frame, text='Submit', command=self.submit).grid(padx=50, pady=10)
 		self.button = ttk.Button(self.frame, text='Exit', command=self.close).grid(padx=50, pady=20)
 
-	def openFile(self):
+	def openFile1(self):
 		cwd = os.getcwd()
-		filename = askopenfilename(initialdir = cwd, title = "Select the Background Report CSV file", filetypes = (("csv files", "*.csv"),))
-		logger.info("File Selected: \n\n%s" % filename)
+		self.filename1 = askopenfilename(initialdir = cwd, title = "Select the Background Report CSV file", filetypes = (("csv files", "*.csv"),))
+		logger.info("File Selected: \n%s\n" % self.filename1)
+
+	def openFile2(self):
+		cwd = os.getcwd()
+		self.filename2 = askopenfilename(initialdir = cwd, title = "Select the Background Report CSV file", filetypes = (("csv files", "*.csv"),))
+		logger.info("File Selected: \n%s\n" % self.filename2)
 
 	def submit(self):
 		logger.info("Testing...")
-		#print(summ.Summation(5,8))
+		ExcelCompare.excelCompare(self.filename1, self.filename2)
 
 	def close(self):
 		exit()
+
+class ThirdUi:
+
+    def __init__(self, frame):
+        self.frame = frame
+        ttk.Label(self.frame, text='This is just an example of a third frame').grid(column=0, row=1, sticky=W)
+        ttk.Label(self.frame, text='With another line here!').grid(column=0, row=4, sticky=W)
+
 
 class App:
 
@@ -115,18 +126,30 @@ class App:
 		form_frame.columnconfigure(1, weight=1)
 		horizontal_pane.add(form_frame, weight=1)
 
+		
 		console_frame = ttk.Labelframe(horizontal_pane, text="Console")
 		console_frame.columnconfigure(0, weight=1)
 		console_frame.rowconfigure(0, weight=1)
 		horizontal_pane.add(console_frame, weight=1)
 
-		#third_frame = ttk.Labelframe(vertical_pane, text="Third Frame")
-		#vertical_pane.add(third_frame, weight=1)
+		third_frame = ttk.Labelframe(vertical_pane, text="Third Frame")
+		vertical_pane.add(third_frame, weight=1)
+		
+		"""
+		third_frame = ttk.Labelframe(horizontal_pane, text="Third Frame")
+		third_frame.columnconfigure(0, weight=1)
+		third_frame.rowconfigure(0, weight=1)
+		horizontal_pane.add(third_frame, weight=1)
+
+		console_frame = ttk.Labelframe(vertical_pane, text="Console")
+		vertical_pane.add(console_frame, weight=1)
+		"""
+
 
 		# Initialize all frames
 		self.form = FormUi(form_frame)
 		self.console = ConsoleUi(console_frame)
-		#self.third = ThirdUi(third_frame)
+		self.third = ThirdUi(third_frame)
 		#self.clock = Clock()
 		#self.clock.start()
 		self.root.protocol('WM_DELETE_WINDOW', self.quit)
@@ -136,8 +159,6 @@ class App:
 	def quit(self, *args):
 		#self.clock.stop()
 		self.root.destroy()
-
-
 
 def main():
 	logging.basicConfig(level=logging.DEBUG)

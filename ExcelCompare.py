@@ -1,9 +1,14 @@
 import csv, os
 import time
 import re
+import logging
 from datetime import datetime
 from tkinter import *
 from tkinter import filedialog
+from test_Excel_Compare import ConsoleUi 
+from test_Excel_Compare import QueueHandler
+
+logger = logging.getLogger(__name__)
 
 def excelCompare(filename1, filename2):
 
